@@ -11,6 +11,9 @@ export class UserResponseDto {
   role: string;
 
   @Expose()
+  nickname: string;
+
+  @Expose()
   createdAt: Date;
 
   @Expose()

@@ -7,4 +7,7 @@ export class RegisterUserDto {
   @IsNotEmpty()
   @MinLength(6)
   password: string;
+
+  @IsNotEmpty()
+  nickname: string;
 }

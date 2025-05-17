@@ -11,5 +11,8 @@ export class LoginResponseDto {
   role: string;
 
   @Expose()
+  nickname: string;
+
+  @Expose()
   accessToken: string;
 }

@@ -11,6 +11,7 @@ import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { LoginDto } from './dto/login.dto';
+import { RegisterUserDto } from './dto/register-user.dto';
 
 @Injectable()
 export class IamService {
@@ -23,10 +24,8 @@ export class IamService {
   async register({
     email,
     password,
-  }: {
-    email: string;
-    password: string;
-  }): Promise<User> {
+    nickname,
+  }: RegisterUserDto): Promise<User> {
     try {
       const existing = await this.userModel.findOne({ email });
       if (existing) {
@@ -47,6 +46,7 @@ export class IamService {
         email,
         password: hashedPassword,
         role: 'USER',
+        nickname,
       });
 
       return await user.save();
@@ -75,6 +75,7 @@ export class IamService {
         sub: user._id.toString(),
         email: user.email,
         role: user.role,
+        nickname: user.nickname,
       };
 
       const token = this.jwtService.sign(payload);
@@ -83,6 +84,7 @@ export class IamService {
         _id: user._id.toString(),
         email: user.email,
         role: user.role,
+        nickname: user.nickname,
         accessToken: token,
       };
     } catch (err) {

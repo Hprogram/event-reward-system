@@ -9,6 +9,7 @@ export const UserSchema = new Schema(
       enum: ['USER', 'OPERATOR', 'AUDITOR', 'ADMIN'],
       default: 'USER',
     },
+    nickname: { type: String, required: true },
   },
   {
     timestamps: true,
