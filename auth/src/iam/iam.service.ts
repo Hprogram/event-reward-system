@@ -15,6 +15,7 @@ import { LoginDto } from './dto/login.dto';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { LoginResponseDto } from './dto/login-response.dto';
+import { UpdateRoleDto } from './dto/update-role.dto';
 
 @Injectable()
 export class IamService {
@@ -115,11 +116,30 @@ export class IamService {
       return updated;
     } catch (err) {
       console.error('[User Update Error]', err);
-      throw err instanceof NotFoundException
-        ? err
-        : new InternalServerErrorException(
-            '유저 정보 수정 중 오류가 발생했습니다.',
-          );
+      if (err instanceof NotFoundException) throw err;
+      throw new InternalServerErrorException(
+        '유저 정보 수정 중 오류가 발생했습니다.',
+      );
+    }
+  }
+
+  async updateUserRole(userId: string, { role }: UpdateRoleDto): Promise<User> {
+    try {
+      const updated = await this.userModel.findByIdAndUpdate(
+        userId,
+        { role },
+        { new: true, select: '-password' },
+      );
+
+      if (!updated) {
+        throw new NotFoundException('사용자를 찾을 수 없습니다.');
+      }
+
+      return updated;
+    } catch (err) {
+      console.error('[Role Update Error]', err);
+      if (err instanceof NotFoundException) throw err;
+      throw new InternalServerErrorException('역할 변경 중 오류 발생');
     }
   }
 }

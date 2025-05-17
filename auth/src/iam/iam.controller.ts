@@ -6,6 +6,7 @@ import { plainToInstance } from 'class-transformer';
 import { LoginDto } from './dto/login.dto';
 import { LoginResponseDto } from './dto/login-response.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UpdateRoleDto } from './dto/update-role.dto';
 
 @Controller('iam')
 export class IamController {
@@ -30,9 +31,20 @@ export class IamController {
   @Patch('user/:sub')
   async updateUser(
     @Param('sub') sub: string,
-    @Body() dto: UpdateUserDto,
+    @Body() body: UpdateUserDto,
   ): Promise<UserResponseDto> {
-    const result = await this.iamService.updateUser(sub, dto);
+    const result = await this.iamService.updateUser(sub, body);
+    return plainToInstance(UserResponseDto, result, {
+      excludeExtraneousValues: true,
+    });
+  }
+
+  @Patch('user/:sub/role')
+  async updateUserRole(
+    @Param('sub') sub: string,
+    @Body() body: UpdateRoleDto,
+  ): Promise<UserResponseDto> {
+    const result = await this.iamService.updateUserRole(sub, body);
     return plainToInstance(UserResponseDto, result, {
       excludeExtraneousValues: true,
     });
