@@ -1,10 +1,11 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, Body, Patch, Param } from '@nestjs/common';
 import { IamService } from './iam.service';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { UserResponseDto } from './dto/user-response.dto';
 import { plainToInstance } from 'class-transformer';
 import { LoginDto } from './dto/login.dto';
 import { LoginResponseDto } from './dto/login-response.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Controller('iam')
 export class IamController {
@@ -22,6 +23,17 @@ export class IamController {
   async login(@Body() body: LoginDto): Promise<LoginResponseDto> {
     const result = await this.iamService.login(body);
     return plainToInstance(LoginResponseDto, result, {
+      excludeExtraneousValues: true,
+    });
+  }
+
+  @Patch('user/:sub')
+  async updateUser(
+    @Param('sub') sub: string,
+    @Body() dto: UpdateUserDto,
+  ): Promise<UserResponseDto> {
+    const result = await this.iamService.updateUser(sub, dto);
+    return plainToInstance(UserResponseDto, result, {
       excludeExtraneousValues: true,
     });
   }

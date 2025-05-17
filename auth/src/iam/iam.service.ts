@@ -2,6 +2,7 @@ import {
   ConflictException,
   Injectable,
   InternalServerErrorException,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
@@ -12,6 +13,8 @@ import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { LoginDto } from './dto/login.dto';
 import { RegisterUserDto } from './dto/register-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { LoginResponseDto } from './dto/login-response.dto';
 
 @Injectable()
 export class IamService {
@@ -60,7 +63,7 @@ export class IamService {
     }
   }
 
-  async login({ email, password }: LoginDto) {
+  async login({ email, password }: LoginDto): Promise<LoginResponseDto> {
     try {
       const user = await this.userModel.findOne({ email });
 
@@ -91,6 +94,32 @@ export class IamService {
       if (err instanceof UnauthorizedException) throw err;
       console.error('[Login Error]', err);
       throw new InternalServerErrorException('로그인 중 오류가 발생했습니다.');
+    }
+  }
+
+  async updateUser(userId: string, { nickname }: UpdateUserDto): Promise<User> {
+    try {
+      const updated = await this.userModel.findByIdAndUpdate(
+        userId,
+        { nickname: nickname },
+        {
+          new: true,
+          select: '-password',
+        },
+      );
+
+      if (!updated) {
+        throw new NotFoundException('사용자를 찾을 수 없습니다.');
+      }
+
+      return updated;
+    } catch (err) {
+      console.error('[User Update Error]', err);
+      throw err instanceof NotFoundException
+        ? err
+        : new InternalServerErrorException(
+            '유저 정보 수정 중 오류가 발생했습니다.',
+          );
     }
   }
 }
