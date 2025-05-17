@@ -2,17 +2,21 @@ import {
   ConflictException,
   Injectable,
   InternalServerErrorException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User } from './interfaces/user.interface';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
+import { JwtService } from '@nestjs/jwt';
+import { LoginDto } from './dto/login.dto';
 
 @Injectable()
 export class IamService {
   constructor(
     @InjectModel('User') private userModel: Model<User>,
+    private jwtService: JwtService,
     private configService: ConfigService,
   ) {}
 
@@ -53,6 +57,38 @@ export class IamService {
       throw new InternalServerErrorException(
         '회원가입 처리 중 오류가 발생했습니다.',
       );
+    }
+  }
+
+  async login({ email, password }: LoginDto) {
+    try {
+      const user = await this.userModel.findOne({ email });
+
+      if (!user)
+        throw new UnauthorizedException('잘못된 이메일 또는 비밀번호입니다.');
+
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch)
+        throw new UnauthorizedException('잘못된 이메일 또는 비밀번호입니다.');
+
+      const payload = {
+        sub: user._id.toString(),
+        email: user.email,
+        role: user.role,
+      };
+
+      const token = this.jwtService.sign(payload);
+
+      return {
+        _id: user._id.toString(),
+        email: user.email,
+        role: user.role,
+        accessToken: token,
+      };
+    } catch (err) {
+      if (err instanceof UnauthorizedException) throw err;
+      console.error('[Login Error]', err);
+      throw new InternalServerErrorException('로그인 중 오류가 발생했습니다.');
     }
   }
 }

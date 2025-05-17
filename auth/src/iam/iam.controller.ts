@@ -3,6 +3,8 @@ import { IamService } from './iam.service';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { UserResponseDto } from './dto/user-response.dto';
 import { plainToInstance } from 'class-transformer';
+import { LoginDto } from './dto/login.dto';
+import { LoginResponseDto } from './dto/login-response.dto';
 
 @Controller('iam')
 export class IamController {
@@ -10,8 +12,16 @@ export class IamController {
 
   @Post('register')
   async register(@Body() body: RegisterUserDto): Promise<UserResponseDto> {
-    const user = await this.iamService.register(body);
-    return plainToInstance(UserResponseDto, user, {
+    const result = await this.iamService.register(body);
+    return plainToInstance(UserResponseDto, result, {
+      excludeExtraneousValues: true,
+    });
+  }
+
+  @Post('login')
+  async login(@Body() body: LoginDto): Promise<LoginResponseDto> {
+    const result = await this.iamService.login(body);
+    return plainToInstance(LoginResponseDto, result, {
       excludeExtraneousValues: true,
     });
   }
