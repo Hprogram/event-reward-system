@@ -9,6 +9,7 @@ import { Model } from 'mongoose';
 import {
   EventConditionKeyMap,
   EventConditionType,
+  EventStatus,
 } from 'src/common/constants/event.constant';
 import { CreateRewardRequestDto } from './dto/create-reward-request.dto';
 import type { Event } from 'src/event/interfaces/event.interface';
@@ -32,6 +33,19 @@ export class RewardRequestService {
       const event = await this.eventModel.findById(dto.eventId).exec();
       if (!event) {
         throw new NotFoundException('이벤트를 찾을 수 없습니다.');
+      }
+
+      // 이벤트 상태 및 기간 체크
+      if (event.status !== EventStatus.ACTIVE) {
+        throw new BadRequestException('비활성화된 이벤트입니다.');
+      }
+
+      const now = new Date();
+      const startDate = new Date(event.startDate);
+      const endDate = new Date(event.endDate);
+
+      if (now <= startDate || now >= endDate) {
+        throw new BadRequestException('이벤트 기간이 아닙니다.');
       }
 
       const condition = event.condition;
