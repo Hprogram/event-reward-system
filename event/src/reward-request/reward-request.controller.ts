@@ -1,9 +1,10 @@
-import { Body, Controller, Get, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, Req } from '@nestjs/common';
 import { RewardRequestService } from './reward-request.service';
 import { CreateRewardRequestDto } from './dto/create-reward-request.dto';
 import { RewardRequestResponseDto } from './dto/reward-request-response.dto';
 import { plainToInstance } from 'class-transformer';
 import { RewardRequestStatus } from 'src/common/constants/reward-request.constant';
+import type { Request } from 'express';
 
 @Controller('reward-request')
 export class RewardRequestController {
@@ -11,9 +12,12 @@ export class RewardRequestController {
 
   @Post()
   async create(
+    @Req() req: Request,
     @Body() dto: CreateRewardRequestDto,
   ): Promise<RewardRequestResponseDto> {
-    const result = await this.rewardRequestService.create(dto);
+    const userId = req.headers['x-user-sub'] as string;
+
+    const result = await this.rewardRequestService.create(userId, dto);
     return plainToInstance(RewardRequestResponseDto, result, {
       excludeExtraneousValues: true,
     });
@@ -21,10 +25,12 @@ export class RewardRequestController {
 
   @Get()
   async findAll(
+    @Req() req: Request,
     @Query('eventId') eventId?: string,
-    @Query('userId') userId?: string,
     @Query('status') status?: RewardRequestStatus,
   ): Promise<RewardRequestResponseDto[]> {
+    const userId = req.headers['x-user-sub'] as string;
+
     const result = await this.rewardRequestService.findAll({
       eventId,
       userId,
@@ -37,8 +43,10 @@ export class RewardRequestController {
 
   @Get('me')
   async findMyRequests(
-    @Query('userId') userId: string,
+    @Req() req: Request,
   ): Promise<RewardRequestResponseDto[]> {
+    const userId = req.headers['x-user-sub'] as string;
+
     const result = await this.rewardRequestService.findAll({ userId });
 
     return plainToInstance(RewardRequestResponseDto, result, {

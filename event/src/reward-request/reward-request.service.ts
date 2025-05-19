@@ -24,7 +24,10 @@ export class RewardRequestService {
     private readonly eventModel: Model<Event>,
   ) {}
 
-  async create(dto: CreateRewardRequestDto): Promise<RewardRequest> {
+  async create(
+    userId: string,
+    dto: CreateRewardRequestDto,
+  ): Promise<RewardRequest> {
     try {
       const event = await this.eventModel.findById(dto.eventId).exec();
       if (!event) {
@@ -54,7 +57,7 @@ export class RewardRequestService {
       // 중복 수령 확인
       const existingSuccess = await this.rewardRequestModel.findOne({
         eventId: dto.eventId,
-        userId: dto.userId,
+        userId: userId,
         status: RewardRequestStatus.SUCCESS,
       });
 
@@ -66,7 +69,7 @@ export class RewardRequestService {
       // 결과 저장
       const rewardRequest = new this.rewardRequestModel({
         eventId: dto.eventId,
-        userId: dto.userId,
+        userId: userId,
         progress: dto.progress,
         status: success
           ? RewardRequestStatus.SUCCESS
