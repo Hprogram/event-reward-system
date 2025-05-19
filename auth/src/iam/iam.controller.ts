@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Patch, Param, Req } from '@nestjs/common';
+import { Controller, Post, Body, Patch, Req } from '@nestjs/common';
 import { IamService } from './iam.service';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { UserResponseDto } from './dto/user-response.dto';
@@ -35,8 +35,6 @@ export class IamController {
     @Req() req: Request,
   ): Promise<UserResponseDto> {
     const userId = req.headers['x-user-sub'] as string;
-
-    console.log(userId);
 
     const result = await this.iamService.updateUser(userId, body);
     return plainToInstance(UserResponseDto, result, {
