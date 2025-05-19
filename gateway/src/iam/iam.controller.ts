@@ -16,6 +16,7 @@ import { LoginDto } from './dto/login.dto';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { AuthGuard } from '@nestjs/passport';
 import { Roles } from 'src/auth/decorators/roles.decorator';
+import { RequestWithUser } from 'src/common/interfaces/jwt.interface';
 
 @Controller('iam')
 export class IamController {
@@ -32,24 +33,16 @@ export class IamController {
   }
 
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Patch('user/:id')
+  @Patch('user')
   @Roles('USER', 'ADMIN')
-  updateUser(
-    @Param('id') id: string,
-    @Body() body: UpdateUserDto,
-    @Req() req: Request,
-  ) {
-    return this.iamService.updateUser(id, req.headers.authorization, body);
+  updateUser(@Req() req: RequestWithUser, @Body() body: UpdateUserDto) {
+    return this.iamService.updateUser(req, body);
   }
 
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Patch('user/:id/role')
+  @Patch('user/role')
   @Roles('ADMIN')
-  updateRole(
-    @Param('id') id: string,
-    @Body() body: UpdateRoleDto,
-    @Req() req: Request,
-  ) {
-    return this.iamService.updateRole(id, req.headers.authorization, body);
+  updateRole(@Req() req: RequestWithUser, @Body() body: UpdateRoleDto) {
+    return this.iamService.updateRole(req, body);
   }
 }

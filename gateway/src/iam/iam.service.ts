@@ -10,6 +10,8 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { LoginDto } from './dto/login.dto';
+import { Request } from 'express';
+import { RequestWithUser } from 'src/common/interfaces/jwt.interface';
 
 @Injectable()
 export class IamService {
@@ -38,11 +40,16 @@ export class IamService {
     }
   }
 
-  async updateUser(id: string, token: string, body: UpdateUserDto) {
+  async updateUser(req: RequestWithUser, body: UpdateUserDto) {
     try {
-      const url = `${this.config.get('AUTH_SERVICE_URL')}/iam/user/${id}`;
+      const userId = req.user?.sub as string;
+      const url = `${this.config.get('AUTH_SERVICE_URL')}/iam/user`;
       const res = await lastValueFrom(
-        this.http.patch(url, body, { headers: { Authorization: token } }),
+        this.http.patch(url, body, {
+          headers: {
+            'x-user-sub': userId,
+          },
+        }),
       );
       return res.data;
     } catch (err) {
@@ -50,11 +57,16 @@ export class IamService {
     }
   }
 
-  async updateRole(id: string, token: string, body: UpdateRoleDto) {
+  async updateRole(req: RequestWithUser, body: UpdateRoleDto) {
     try {
-      const url = `${this.config.get('AUTH_SERVICE_URL')}/iam/user/${id}/role`;
+      const userId = req.user?.sub as string;
+      const url = `${this.config.get('AUTH_SERVICE_URL')}/iam/user/role`;
       const res = await lastValueFrom(
-        this.http.patch(url, body, { headers: { Authorization: token } }),
+        this.http.patch(url, body, {
+          headers: {
+            'x-user-sub': userId,
+          },
+        }),
       );
       return res.data;
     } catch (err) {
