@@ -44,7 +44,7 @@ export class EventController {
     });
   }
 
-  @Get()
+  @Get('detail')
   async findOne(@Query('eventId') eventId: string): Promise<EventResponseDto> {
     const result = await this.eventService.findOne(eventId);
     return plainToInstance(EventResponseDto, result, {

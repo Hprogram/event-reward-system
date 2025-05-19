@@ -25,12 +25,10 @@ export class RewardRequestController {
 
   @Get()
   async findAll(
-    @Req() req: Request,
+    @Query('userId') userId?: string,
     @Query('eventId') eventId?: string,
     @Query('status') status?: RewardRequestStatus,
   ): Promise<RewardRequestResponseDto[]> {
-    const userId = req.headers['x-user-sub'] as string;
-
     const result = await this.rewardRequestService.findAll({
       eventId,
       userId,
