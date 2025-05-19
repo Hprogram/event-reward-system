@@ -21,3 +21,10 @@ export const EventStatus = {
 } as const;
 
 export type EventStatus = (typeof EventStatus)[keyof typeof EventStatus];
+
+// 이벤트 조건 키 맵
+export const EventConditionKeyMap: Record<EventConditionType, string> = {
+  MONSTER_KILL: 'count',
+  DAILY_CHECKIN: 'days',
+  FRIEND_INVITE: 'invites',
+};
