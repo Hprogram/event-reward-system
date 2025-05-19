@@ -11,29 +11,37 @@ services:
     build: ./gateway
     ports:
       - "3000:3000"
-    env_file:
-      - ./gateway/.env
     depends_on:
       - auth
       - event
+    environment:
+      - PORT=3000
+      - JWT_SECRET=dev-secret
+      - AUTH_SERVICE_URL=http://auth:3001
+      - EVENT_SERVICE_URL=http://event:3002
 
   auth:
     build: ./auth
     ports:
       - "3001:3001"
-    env_file:
-      - ./auth/.env
     depends_on:
       - mongo
+    environment:
+      - PORT=3001
+      - MONGO_URI=mongodb://mongo:27017/auth
+      - JWT_SECRET=dev-secret
+      - JWT_EXPIRES_IN=1h
+      - SALT_ROUNDS=10
 
   event:
     build: ./event
     ports:
       - "3002:3002"
-    env_file:
-      - ./event/.env
     depends_on:
       - mongo
+    environment:
+      - PORT=3002
+      - MONGO_URI=mongodb://mongo:27017/event
 
 volumes:
   mongo_data:
