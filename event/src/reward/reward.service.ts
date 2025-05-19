@@ -16,14 +16,17 @@ export class RewardService {
     @InjectModel('Event') private readonly eventModel: Model<Event>,
   ) {}
 
-  async create(dto: CreateRewardDto): Promise<Reward> {
+  async create(userId: string, dto: CreateRewardDto): Promise<Reward> {
     try {
       const event = await this.eventModel.findById(dto.eventId);
       if (!event) {
         throw new NotFoundException('해당 이벤트가 존재하지 않습니다.');
       }
 
-      const reward = new this.rewardModel(dto);
+      const reward = new this.rewardModel({
+        ...dto,
+        createdBy: userId,
+      });
       return await reward.save();
     } catch (err) {
       console.error('[Reward Create Error]', err);

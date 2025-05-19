@@ -20,6 +20,10 @@ export const RewardSchema = new Schema(
     description: {
       type: String,
     },
+    createdBy: {
+      type: String,
+      required: true,
+    },
   },
   { timestamps: true },
 );
