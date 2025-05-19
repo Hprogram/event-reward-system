@@ -24,6 +24,8 @@
 | Auth      | JWT (with Passport)               |
 | Container | Docker + docker-compose (v28.1.1) |
 
+**NestJS버전은 NodeJS v18에서 가장 안정적으로지원하는 최신버전 사용**
+
 ---
 
 ## ⚙️ 실행 방법
