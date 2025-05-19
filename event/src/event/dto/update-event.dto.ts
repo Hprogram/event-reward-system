@@ -73,8 +73,4 @@ export class UpdateEventDto {
   @IsOptional()
   @IsEnum(EventStatus)
   status?: EventStatus;
-
-  @IsOptional()
-  @IsString()
-  createdBy?: string;
 }

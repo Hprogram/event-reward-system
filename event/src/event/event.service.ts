@@ -18,14 +18,17 @@ export class EventService {
     @InjectModel('Event') private readonly eventModel: Model<Event>,
   ) {}
 
-  async create(dto: CreateEventDto): Promise<Event> {
+  async create(userId: string, dto: CreateEventDto): Promise<Event> {
     try {
       const exists = await this.eventModel.findOne({ title: dto.title });
       if (exists) {
         throw new ConflictException('같은 제목의 이벤트가 이미 존재합니다.');
       }
 
-      const created = new this.eventModel(dto);
+      const created = new this.eventModel({
+        ...dto,
+        createdBy: userId,
+      });
       return await created.save();
     } catch (err) {
       console.error('[Event Create Error]', err);

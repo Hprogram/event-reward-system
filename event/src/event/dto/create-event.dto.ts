@@ -66,7 +66,4 @@ export class CreateEventDto {
 
   @IsEnum(EventStatus)
   status: EventStatus;
-
-  @IsString()
-  createdBy: string;
 }

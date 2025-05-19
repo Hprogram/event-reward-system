@@ -7,6 +7,7 @@ import {
   Patch,
   Post,
   Query,
+  Req,
 } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { EventStatus } from 'src/common/constants/event.constant';
@@ -14,14 +15,20 @@ import { CreateEventDto } from './dto/create-event.dto';
 import { EventResponseDto } from './dto/event-response.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { EventService } from './event.service';
+import type { Request } from 'express';
 
 @Controller('event')
 export class EventController {
   constructor(private readonly eventService: EventService) {}
 
   @Post()
-  async create(@Body() dto: CreateEventDto): Promise<EventResponseDto> {
-    const result = await this.eventService.create(dto);
+  async create(
+    @Req() req: Request,
+    @Body() dto: CreateEventDto,
+  ): Promise<EventResponseDto> {
+    const userId = req.headers['x-user-sub'] as string;
+
+    const result = await this.eventService.create(userId, dto);
     return plainToInstance(EventResponseDto, result, {
       excludeExtraneousValues: true,
     });
@@ -37,28 +44,28 @@ export class EventController {
     });
   }
 
-  @Get(':id')
-  async findOne(@Param('id') id: string): Promise<EventResponseDto> {
-    const result = await this.eventService.findOne(id);
+  @Get()
+  async findOne(@Query('eventId') eventId: string): Promise<EventResponseDto> {
+    const result = await this.eventService.findOne(eventId);
     return plainToInstance(EventResponseDto, result, {
       excludeExtraneousValues: true,
     });
   }
 
-  @Patch(':id')
+  @Patch()
   async update(
-    @Param('id') id: string,
+    @Query('eventId') eventId: string,
     @Body() dto: UpdateEventDto,
   ): Promise<EventResponseDto> {
-    const result = await this.eventService.update(id, dto);
+    const result = await this.eventService.update(eventId, dto);
     return plainToInstance(EventResponseDto, result, {
       excludeExtraneousValues: true,
     });
   }
 
-  @Delete(':id')
-  async delete(@Param('id') id: string): Promise<EventResponseDto> {
-    const result = await this.eventService.delete(id);
+  @Delete()
+  async delete(@Query('eventId') eventId: string): Promise<EventResponseDto> {
+    const result = await this.eventService.delete(eventId);
     return plainToInstance(EventResponseDto, result, {
       excludeExtraneousValues: true,
     });
