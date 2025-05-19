@@ -2,33 +2,155 @@
 
 ## 📝 개요
 
-본 프로젝트는 NestJS + MongoDB + Docker 환경에서 구성된 **이벤트 및 보상 관리 플랫폼**입니다.
+본 프로젝트는 NestJS + MongoDB + Docker 환경에서 구성된 **이벤트 및 보상 관리 시스템**입니다.  
 운영자는 이벤트 및 보상을 등록하고, 유저는 조건을 만족했을 때 보상을 요청할 수 있으며, 감사자는 지급 이력을 확인할 수 있습니다.
 
 이 시스템은 다음과 같은 세 가지 서버로 구성됩니다:
 
 - **Gateway Server**: 모든 API 요청의 진입점. 인증 및 권한 검증 수행
 - **Auth Server**: 유저 인증 및 역할(Role) 관리
-- **Event Server**: 이벤트 및 보상 등록/요청 처리
+- **Event Server**: 이벤트 등록, 보상 요청 처리
+
+---
 
 ## 🛠 기술 스택
 
-| 항목      | 내용                    |
-| --------- | ----------------------- |
-| Language  | TypeScript              |
-| Runtime   | Node.js 18              |
-| Framework | NestJS                  |
-| Database  | MongoDB                 |
-| Auth      | JWT                     |
-| Container | Docker + docker-compose |
+| 항목      | 내용                              |
+| --------- | --------------------------------- |
+| Language  | TypeScript                        |
+| Runtime   | Node.js 18                        |
+| Framework | NestJS                            |
+| Database  | MongoDB                           |
+| Auth      | JWT (with Passport)               |
+| Container | Docker + docker-compose (v28.1.1) |
+
+---
 
 ## ⚙️ 실행 방법
 
 ```bash
 # 1. 프로젝트 클론
-git clone https://github.com/
+git clone https://github.com/Hprogram/event-reward-system.git
 cd event-reward-system
 
 # 2. 실행 (Docker Compose)
 docker-compose up --build
 ```
+
+---
+
+## 📁 프로젝트 구조
+
+```
+apps/
+├── gateway/     # API Gateway (라우팅, 인증/인가 검증)
+├── auth/        # 유저 등록/로그인/권한(Role) 관리
+├── event/       # 이벤트 등록, 보상 요청 처리
+```
+
+---
+
+## 💡 설계 및 구현 설명
+
+### ✅ 인증 구조
+
+- `Auth` 서버에서 JWT 발급
+- `Gateway` 서버에서 `@nestjs/passport` 기반 `AuthGuard`, `RolesGuard`를 통해 인증/권한 검증 수행
+- 토큰에서 `sub`, `role`을 추출하여 역할 기반 API 접근 제어
+
+### ✅ 권한 체계
+
+| 역할     | 설명                  |
+| -------- | --------------------- |
+| ADMIN    | 전체 기능 접근 가능   |
+| OPERATOR | 이벤트 등록 가능      |
+| AUDITOR  | 보상 이력 조회만 가능 |
+| USER     | 보상 요청 가능        |
+
+### ✅ 조건 분기 설계
+
+- 이벤트 조건은 `type` + `payload` 구조로 분기 처리
+- 예: `"type": "MONSTER_KILL", "payload": { "count": 1000 }`
+- DTO 유효성 검사는 `class-transformer` + `@ValidateNested()`로 각 조건별 타입 분리
+
+### ✅ 보상 요청 처리 설계
+
+- 유저는 클라이언트에서 자신의 달성 정보(progress)를 포함하여 요청
+- 서버는 이벤트 조건과 비교하여 성공 여부 판별
+- 동일 이벤트에 대해 **이전 요청이 모두 실패**한 경우 재검증 가능
+- 성공한 요청이 존재하면 이후 요청은 무조건 실패 처리
+
+### ✅ 응답 구조 통일
+
+- 모든 성공 응답은 다음 형식으로 통일:
+
+```json
+{
+  "statusCode": 200,
+  "message": "요청 성공",
+  "data": {...}
+}
+```
+
+- 실패 응답은 NestJS의 기본 예외 구조 유지
+
+---
+
+## 🧪 시드 데이터 (자동 생성)
+
+- 서버 실행 시 다음과 같은 목업 유저 및 이벤트 데이터가 삽입됩니다:
+
+### 유저
+
+| 이메일            | 역할     |
+| ----------------- | -------- |
+| admin@test.com    | ADMIN    |
+| user@test.com     | USER     |
+| operator@test.com | OPERATOR |
+| auditor@test.com  | AUDITOR  |
+
+> ✅ 모든 유저의 기본 비밀번호는 `123456` 으로 통일되어 있습니다.
+
+### 이벤트
+
+| 이벤트               | 조건        |
+| -------------------- | ----------- |
+| 몬스터 1000마리 처치 | count: 1000 |
+| 7일 연속 출석        | days: 7     |
+| 친구 3명 초대        | invites: 3  |
+
+---
+
+## 📌 기타
+
+- 전체 서버는 하나의 `docker-compose`로 실행되며, 각 서비스는 독립적으로 관리됨
+- 실제 서비스에서는 SSO, 실시간 유저 권한 반영 등을 위한 개선 여지가 있음
+
+## 🤔 구현 중 고민했던 부분과 개선 아이디어
+
+- **권한 실시간 반영 문제**  
+  Gateway 서버는 JWT 토큰 내 역할(role) 정보를 기반으로 권한을 검증합니다.  
+  이 방식은 간편하지만, 로그인 이후 Auth 서버에서 유저 역할이 변경되더라도 토큰이 만료되기 전까지 반영되지 않는 문제가 있었습니다.  
+  시간상 구현은 하지 못했지만 해결을 위해 다음과 같은 아이디어를 고려했습니다:
+
+  - Auth 서버에 권한 확인용 API를 따로 만들어, Gateway가 매 요청마다 유저 정보를 조회하도록 구성
+  - 또는 짧은 토큰 만료시간 설정 및 refresh token 기반 구조로 개선
+
+- **조건 기반 보상 검증 구조 설계**  
+  다양한 이벤트 조건을 처리할 수 있도록 `type + payload` 구조로 설계했고,  
+  DTO에서는 `class-transformer`를 활용해 조건 타입별로 payload 구조를 동적으로 유효성 검증했습니다.  
+  이 구조는 향후 조건 타입이 추가되더라도 확장하기 쉬운 형태를 목표로 했습니다.
+
+- **보상 요청 중복 처리**  
+  같은 유저가 동일 이벤트에 대해 여러 번 요청을 보낼 수 있기 때문에,  
+  "이전에 성공한 요청이 존재하면 이후 요청은 실패" 처리하는 로직을 따로 구현했습니다.
+
+- **응답 포맷 통일**  
+  모든 API 응답의 일관성을 위해 인터셉터를 활용해 성공 응답을 통일된 포맷(`statusCode`, `message`, `data`)으로 반환하도록 구성했습니다.
+
+- **Seed 데이터 자동화**  
+  서버 실행 시 `.main.ts` 내에서 초기 데이터 시드를 자동으로 실행하도록 구성했으며,  
+  중복 생성 방지를 위해 유저/이벤트/보상 모두 존재 여부를 체크하고 없을 때만 생성하는 방식으로 처리했습니다.
+
+- **환경변수 관리**  
+  테스트 환경이기 때문에 `docker-compose`에서 환경변수로 관리했습니다.
