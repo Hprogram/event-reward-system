@@ -38,6 +38,7 @@ export class RewardRequestService {
       let success = false;
       let reason = '';
 
+      // 조건 검증
       if (requiredKey in dto.progress) {
         const actual = (dto.progress as any)[requiredKey];
         const required = condition.payload[requiredKey];
@@ -50,6 +51,19 @@ export class RewardRequestService {
         throw new BadRequestException(`요청 데이터를 다시 확인해주세요.`);
       }
 
+      // 중복 수령 확인
+      const existingSuccess = await this.rewardRequestModel.findOne({
+        eventId: dto.eventId,
+        userId: dto.userId,
+        status: RewardRequestStatus.SUCCESS,
+      });
+
+      if (existingSuccess) {
+        success = false;
+        reason = '이미 보상을 수령한 이벤트입니다.';
+      }
+
+      // 결과 저장
       const rewardRequest = new this.rewardRequestModel({
         eventId: dto.eventId,
         userId: dto.userId,
