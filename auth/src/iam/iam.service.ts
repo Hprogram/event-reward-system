@@ -46,10 +46,14 @@ export class IamService {
 
       const hashedPassword = await bcrypt.hash(password, saltRounds);
 
+      // 최초 사용자의 경우 관리자 권한 부여
+      const userCount = await this.userModel.countDocuments();
+      const role = userCount === 0 ? 'ADMIN' : 'USER';
+
       const user = new this.userModel({
         email,
         password: hashedPassword,
-        role: 'USER',
+        role,
         nickname,
       });
 
