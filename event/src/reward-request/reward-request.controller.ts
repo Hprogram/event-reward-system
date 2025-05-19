@@ -22,9 +22,14 @@ export class RewardRequestController {
   @Get()
   async findAll(
     @Query('eventId') eventId?: string,
+    @Query('userId') userId?: string,
     @Query('status') status?: RewardRequestStatus,
   ): Promise<RewardRequestResponseDto[]> {
-    const result = await this.rewardRequestService.findAll({ eventId, status });
+    const result = await this.rewardRequestService.findAll({
+      eventId,
+      userId,
+      status,
+    });
     return plainToInstance(RewardRequestResponseDto, result, {
       excludeExtraneousValues: true,
     });
