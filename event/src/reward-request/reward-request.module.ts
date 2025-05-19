@@ -1,9 +1,17 @@
 import { Module } from '@nestjs/common';
 import { RewardRequestService } from './reward-request.service';
 import { RewardRequestController } from './reward-request.controller';
+import { MongooseModule } from '@nestjs/mongoose';
+import { RewardRequestSchema } from './schemas/reward-request.schema';
 
 @Module({
+  imports: [
+    MongooseModule.forFeature([
+      { name: 'RewardRequest', schema: RewardRequestSchema },
+    ]),
+  ],
   providers: [RewardRequestService],
-  controllers: [RewardRequestController]
+  controllers: [RewardRequestController],
+  exports: [MongooseModule],
 })
 export class RewardRequestModule {}
