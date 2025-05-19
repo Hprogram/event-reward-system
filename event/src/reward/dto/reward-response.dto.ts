@@ -7,6 +7,7 @@ export class RewardResponseDto {
   _id: string;
 
   @Expose()
+  @Transform(({ obj }) => obj.eventId.toString())
   eventId: string;
 
   @Expose()
