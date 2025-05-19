@@ -9,7 +9,7 @@
 
 - **Gateway Server**: 모든 API 요청의 진입점. 인증 및 권한 검증 수행
 - **Auth Server**: 유저 인증 및 역할(Role) 관리
-- **Event Server**: 이벤트 등록, 보상 요청 처리
+- **Event Server**: 이벤트/리워드 등록, 보상 요청 처리
 
 ---
 
