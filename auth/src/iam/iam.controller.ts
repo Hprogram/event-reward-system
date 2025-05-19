@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Patch, Param } from '@nestjs/common';
+import { Controller, Post, Body, Patch, Param, Req } from '@nestjs/common';
 import { IamService } from './iam.service';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { UserResponseDto } from './dto/user-response.dto';
@@ -7,6 +7,7 @@ import { LoginDto } from './dto/login.dto';
 import { LoginResponseDto } from './dto/login-response.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
+import type { Request } from 'express';
 
 @Controller('iam')
 export class IamController {
@@ -28,23 +29,29 @@ export class IamController {
     });
   }
 
-  @Patch('user/:sub')
+  @Patch('user')
   async updateUser(
-    @Param('sub') sub: string,
     @Body() body: UpdateUserDto,
+    @Req() req: Request,
   ): Promise<UserResponseDto> {
-    const result = await this.iamService.updateUser(sub, body);
+    const userId = req.headers['x-user-sub'] as string;
+
+    console.log(userId);
+
+    const result = await this.iamService.updateUser(userId, body);
     return plainToInstance(UserResponseDto, result, {
       excludeExtraneousValues: true,
     });
   }
 
-  @Patch('user/:sub/role')
+  @Patch('user/role')
   async updateUserRole(
-    @Param('sub') sub: string,
     @Body() body: UpdateRoleDto,
+    @Req() req: Request,
   ): Promise<UserResponseDto> {
-    const result = await this.iamService.updateUserRole(sub, body);
+    const userId = req.headers['x-user-sub'] as string;
+
+    const result = await this.iamService.updateUserRole(userId, body);
     return plainToInstance(UserResponseDto, result, {
       excludeExtraneousValues: true,
     });
