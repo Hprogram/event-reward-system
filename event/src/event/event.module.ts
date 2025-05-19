@@ -10,5 +10,6 @@ import { EventSchema } from './schemas/event.schema';
   ],
   controllers: [EventController],
   providers: [EventService],
+  exports: [MongooseModule],
 })
 export class EventModule {}
